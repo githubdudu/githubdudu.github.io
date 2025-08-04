@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Trade Order System Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The application is structured into four thematic, interactive sections to deconstruct the dense report into digestible modules. 1) An interactive Order Type Explorer to compare functional trade-offs. 2) A simulated "All-in-One Trade Ticket" to make the UI/UX concepts tangible. 3) A visual, clickable diagram of the system architecture to simplify complex backend concepts. 4) An interactive timeline for the order lifecycle. This structure prioritizes hands-on learning and exploration over passive reading, allowing users to engage with each core pillar of the system (Functionality, UX, Architecture, Operations) in a focused, intuitive manner. -->
+    <!-- Visualization & Content Choices: 1) Order Types: Report's Table 1 is transformed into an interactive list paired with a Chart.js radar chart. Goal: Compare trade-offs (Execution vs. Price Certainty). Interaction: Clicking an order type updates the chart and descriptive text. Justification: Visually superior for comparison. 2) Trade Ticket: Report's checklist becomes a simulated HTML form. Goal: Demonstrate UI/UX. Interaction: Form inputs dynamically update a "Pre-Trade Analysis" summary via JS. Justification: Provides a tangible feel for a key user interface. 3) Architecture: Report's text description of microservices is converted into a diagram using HTML/Tailwind. Goal: Organize/Inform. Interaction: Clicking a component reveals its function. Justification: Clarifies system flow and component relationships. 4) Order Lifecycle: Report's state list becomes a visual timeline. Goal: Show process. Interaction: Hovering reveals state definitions. Justification: Intuitively shows progression. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 450px; margin-left: auto; margin-right: auto; height: 300px; max-height: 350px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .nav-link { transition: color 0.3s, border-color 0.3s; }
+        .component-box { transition: background-color 0.3s, transform 0.3s; }
+        .component-box:hover { transform: translateY(-4px); }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-40 border-b border-slate-200">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-indigo-600">Trade System Blueprint</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#orders" class="nav-link text-slate-600 hover:text-indigo-600 border-b-2 border-transparent hover:border-indigo-500 pb-1">Order Types</a>
+                    <a href="#ticket" class="nav-link text-slate-600 hover:text-indigo-600 border-b-2 border-transparent hover:border-indigo-500 pb-1">Trade Ticket</a>
+                    <a href="#architecture" class="nav-link text-slate-600 hover:text-indigo-600 border-b-2 border-transparent hover:border-indigo-500 pb-1">Architecture</a>
+                    <a href="#lifecycle" class="nav-link text-slate-600 hover:text-indigo-600 border-b-2 border-transparent hover:border-indigo-500 pb-1">Lifecycle</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="intro" class="text-center mb-16 md:mb-24">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">An Interactive Guide to Modern Trade Order Systems</h1>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600">
+                This application deconstructs the complex architecture of a financial trading system. Move beyond static text and interact with the core components—from the nuances of order types to the engine that powers it all.
+            </p>
+        </section>
+
+        <section id="orders" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">The Trader's Toolkit: An Order Type Explorer</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">Every order type represents a strategic choice, balancing speed, price certainty, and risk. Select an order from the list to understand its unique mechanics and trade-offs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+                <div class="lg:col-span-1">
+                    <ul id="order-type-list" class="space-y-2"></ul>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 id="order-type-title" class="text-2xl font-bold text-indigo-700 mb-3">Market Order</h3>
+                            <p id="order-type-description" class="text-slate-600 mb-4">Buy or sell immediately at the best available price. Offers the highest chance of execution but no price guarantee.</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="font-semibold text-slate-700">Primary Use Case:</h4>
+                                    <p id="order-type-usecase" class="text-sm text-slate-500">Urgent entry or exit, especially in highly liquid markets.</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-700">Primary Risk:</h4>
+                                    <p id="order-type-risk" class="text-sm text-rose-600">Price Slippage. The execution price may differ from the last-seen price, especially in volatile markets.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="chart-container">
+                                <canvas id="order-type-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ticket" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Anatomy of a Trade: The All-in-One Ticket</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">A modern trade ticket is more than a form; it's a decision-support tool. Interact with the fields below to see how contextual data provides a real-time impact assessment before the trade is ever placed.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <div class="border-r-0 md:border-r md:pr-8 border-slate-200">
+                    <h3 class="font-bold text-xl mb-4 text-slate-800">Trade Ticket: AAPL</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="font-medium text-sm text-slate-600">Action</label>
+                            <div class="grid grid-cols-2 gap-2 mt-1">
+                                <button id="buy-btn" class="w-full bg-emerald-500 text-white font-semibold py-2 rounded-md transition hover:bg-emerald-600">Buy</button>
+                                <button id="sell-btn" class="w-full bg-slate-200 text-slate-700 font-semibold py-2 rounded-md transition hover:bg-slate-300">Sell</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="trade-order-type" class="font-medium text-sm text-slate-600">Order Type</label>
+                            <select id="trade-order-type" class="w-full mt-1 p-2 border border-slate-300 rounded-md bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option>Market</option>
+                                <option>Limit</option>
+                                <option>Stop</option>
+                                <option>Stop-Limit</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="quantity" class="font-medium text-sm text-slate-600">Quantity</label>
+                                <input type="number" id="quantity" value="10" class="w-full mt-1 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                             <div>
+                                <label for="tif" class="font-medium text-sm text-slate-600">Time in Force</label>
+                                <select id="tif" class="w-full mt-1 p-2 border border-slate-300 rounded-md bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option>Day</option>
+                                    <option>GTC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="price-inputs" class="grid grid-cols-2 gap-4">
+                            <div id="limit-price-group" class="hidden">
+                                <label for="limit-price" class="font-medium text-sm text-slate-600">Limit Price</label>
+                                <input type="number" id="limit-price" value="150.00" class="w-full mt-1 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div id="stop-price-group" class="hidden">
+                                <label for="stop-price" class="font-medium text-sm text-slate-600">Stop Price</label>
+                                <input type="number" id="stop-price" value="145.00" class="w-full mt-1 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-6 md:pt-0">
+                     <h3 class="font-bold text-xl mb-4 text-slate-800">Pre-Trade Analysis</h3>
+                     <div class="bg-slate-100 p-4 rounded-lg space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-600">Live Market Price:</span>
+                            <span class="font-mono font-semibold text-slate-800">$150.25</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-600">Buying Power:</span>
+                            <span class="font-mono font-semibold text-slate-800">$25,000.00</span>
+                        </div>
+                        <hr class="border-slate-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600 font-medium">Estimated Cost:</span>
+                            <span id="est-cost" class="font-mono font-bold text-lg text-emerald-600">$1,502.50</span>
+                        </div>
+                         <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-600">Margin Impact:</span>
+                            <span id="margin-impact" class="font-mono font-semibold text-slate-800">-$751.25</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-600">Buying Power After:</span>
+                            <span id="buying-power-after" class="font-mono font-semibold text-slate-800">$23,497.50</span>
+                        </div>
+                     </div>
+                     <button class="w-full mt-6 bg-indigo-600 text-white font-semibold py-3 rounded-md transition hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Place Buy Order
+                     </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="mb-16 md:mb-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">The System's Engine: An Architecture Explorer</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">A trading platform is a complex distributed system. The diagram below shows the high-level flow of an order from user click to market execution. Click on any component to learn about its role.</p>
+            </div>
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 text-center text-sm font-semibold">
+                    <div data-component="ui" class="component-box cursor-pointer bg-sky-100 text-sky-800 p-4 rounded-lg shadow w-48">User Interface</div>
+                    <div class="text-slate-400 font-mono">&rarr;</div>
+                    <div data-component="gateway" class="component-box cursor-pointer bg-slate-100 text-slate-800 p-4 rounded-lg shadow w-48">API Gateway</div>
+                    <div class="text-slate-400 font-mono">&rarr;</div>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div data-component="risk" class="component-box cursor-pointer bg-amber-100 text-amber-800 p-4 rounded-lg shadow w-48">Pre-Trade Risk</div>
+                        <div data-component="oms" class="component-box cursor-pointer bg-indigo-100 text-indigo-800 p-4 rounded-lg shadow w-48">Order Mgt. Service (OMS)</div>
+                    </div>
+                    <div class="text-slate-400 font-mono">&rarr;</div>
+                    <div data-component="sor" class="component-box cursor-pointer bg-teal-100 text-teal-800 p-4 rounded-lg shadow w-48">Smart Order Router (SOR)</div>
+                    <div class="text-slate-400 font-mono">&rarr;</div>
+                    <div data-component="connectors" class="component-box cursor-pointer bg-rose-100 text-rose-800 p-4 rounded-lg shadow w-48">Execution Connectors</div>
+                    <div class="text-slate-400 font-mono">&rarr;</div>
+                     <div class="component-box bg-emerald-100 text-emerald-800 p-4 rounded-lg shadow w-48">Market Exchanges</div>
+                </div>
+                 <div class="mt-8 text-center">
+                    <div class="inline-flex items-center justify-center">
+                        <div data-component="bus" class="component-box cursor-pointer bg-purple-100 text-purple-800 p-4 rounded-lg shadow w-full md:w-64">Event Bus / Message Broker</div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Connects all services asynchronously</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="lifecycle" class="scroll-mt-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Order Lifecycle & Time in Force</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-slate-600">An order is a dynamic entity that moves through a defined lifecycle. Hover over the states below to see how an order progresses from submission to completion.</p>
+            </div>
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <h3 class="text-xl font-bold text-center mb-6 text-slate-800">Order State Machine</h3>
+                <div class="relative">
+                    <div class="absolute top-1/2 left-0 w-full h-0.5 bg-slate-300 -translate-y-1/2"></div>
+                    <div class="relative flex justify-between items-center">
+                        <div class="group text-center">
+                            <div class="w-8 h-8 mx-auto bg-slate-200 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-slate-300 transition group-hover:ring-indigo-500">1</div>
+                            <p class="mt-2 text-sm font-semibold text-slate-700">Pending</p>
+                            <div class="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-slate-800 text-white text-xs rounded-md p-2 z-10 left-1/2 -translate-x-1/2">Submitted but not yet active (e.g., after hours).</div>
+                        </div>
+                        <div class="group text-center">
+                            <div class="w-8 h-8 mx-auto bg-sky-200 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-sky-300 transition group-hover:ring-indigo-500">2</div>
+                            <p class="mt-2 text-sm font-semibold text-slate-700">Working</p>
+                            <div class="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-slate-800 text-white text-xs rounded-md p-2 z-10 left-1/2 -translate-x-1/2">Live order sent to the market, awaiting execution.</div>
+                        </div>
+                        <div class="group text-center">
+                            <div class="w-8 h-8 mx-auto bg-amber-200 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-amber-300 transition group-hover:ring-indigo-500">3</div>
+                            <p class="mt-2 text-sm font-semibold text-slate-700">Partially Filled</p>
+                            <div class="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-slate-800 text-white text-xs rounded-md p-2 z-10 left-1/2 -translate-x-1/2">Part of the order is executed; the rest is still working.</div>
+                        </div>
+                        <div class="group text-center">
+                            <div class="w-8 h-8 mx-auto bg-emerald-200 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-emerald-300 transition group-hover:ring-indigo-500">4</div>
+                            <p class="mt-2 text-sm font-semibold text-slate-700">Filled</p>
+                            <div class="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-slate-800 text-white text-xs rounded-md p-2 z-10 left-1/2 -translate-x-1/2">The order has been completely executed.</div>
+                        </div>
+                        <div class="group text-center">
+                            <div class="w-8 h-8 mx-auto bg-rose-200 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-rose-300 transition group-hover:ring-indigo-500">5</div>
+                            <p class="mt-2 text-sm font-semibold text-slate-700">Canceled</p>
+                             <div class="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-slate-800 text-white text-xs rounded-md p-2 z-10 left-1/2 -translate-x-1/2">Order proactively canceled by the user before a full fill.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 mt-16 md:mt-24">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm">
+            <p>&copy; 2025 Trade System Blueprint. A conceptual model for educational purposes.</p>
+        </div>
+    </footer>
+
+    <div id="component-modal" class="modal fixed inset-0 bg-black/60 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 relative">
+            <button id="close-modal-btn" class="absolute top-3 right-3 text-slate-500 hover:text-slate-800 transition">&times;</button>
+            <h3 id="modal-title" class="text-xl font-bold text-indigo-700 mb-2">Component</h3>
+            <p id="modal-description" class="text-slate-600">Description of the component.</p>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const orderTypesData = {
+        'Market': {
+            description: 'Buy or sell immediately at the best available price. Offers the highest chance of execution but no price guarantee.',
+            usecase: 'Urgent entry or exit, especially in highly liquid markets.',
+            risk: 'Price Slippage. The execution price may differ from the last-seen price, especially in volatile markets.',
+            chartData: [5, 1, 5]
+        },
+        'Limit': {
+            description: 'Buy or sell at a specific price or better. Prioritizes price control over speed of execution.',
+            usecase: 'Price-sensitive entry/exit; placing bids/offers away from the current market.',
+            risk: 'Non-execution. If the market never reaches the limit price, the order will not be filled.',
+            chartData: [2, 5, 2]
+        },
+        'Stop': {
+            description: 'Becomes a market order once a specified "stop price" is reached. Used to mitigate losses or protect profits.',
+            usecase: 'Limiting losses on a long position or protecting unrealized profits.',
+            risk: 'Slippage. Once triggered, it becomes a market order and the execution price is not guaranteed.',
+            chartData: [4, 1, 4]
+        },
+        'Stop-Limit': {
+            description: 'Combines stop and limit features. Becomes a limit order once the stop price is reached.',
+            usecase: 'Precise loss-limiting with control over the execution price.',
+            risk: 'Non-execution. If the market gaps past the limit price after being triggered, the order may not fill.',
+            chartData: [2, 4, 3]
+        },
+        'Trailing Stop': {
+            description: 'A stop order where the stop price trails the market price by a set amount or percentage, locking in profits.',
+            usecase: 'Protecting profits on a trending stock without manually adjusting the stop price.',
+            risk: 'Slippage. Like a standard stop order, it typically becomes a market order once triggered.',
+            chartData: [4, 1, 5]
+        },
+        'OCO': {
+            description: 'One-Cancels-the-Other. A pair of orders (e.g., a limit and a stop) where one execution cancels the other.',
+            usecase: 'Bracketing a position with both a profit-taking exit and a loss-limiting exit.',
+            risk: 'Complexity. One side of the order may not execute as intended in all market conditions.',
+            chartData: [3, 3, 4]
+        }
+    };
+
+    const orderTypeList = document.getElementById('order-type-list');
+    const orderTypeTitle = document.getElementById('order-type-title');
+    const orderTypeDescription = document.getElementById('order-type-description');
+    const orderTypeUsecase = document.getElementById('order-type-usecase');
+    const orderTypeRisk = document.getElementById('order-type-risk');
+    let activeOrderItem = null;
+
+    Object.keys(orderTypesData).forEach((key, index) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.textContent = key;
+        button.className = 'w-full text-left p-3 rounded-md font-medium transition ';
+        if (index === 0) {
+            button.classList.add('bg-indigo-100', 'text-indigo-700');
+            activeOrderItem = button;
+        } else {
+            button.classList.add('text-slate-600', 'hover:bg-slate-100');
+        }
+        button.onclick = () => {
+            updateOrderTypeDetails(key);
+            if(activeOrderItem) activeOrderItem.classList.remove('bg-indigo-100', 'text-indigo-700');
+            if(activeOrderItem) activeOrderItem.classList.add('text-slate-600', 'hover:bg-slate-100');
+            button.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            button.classList.add('bg-indigo-100', 'text-indigo-700');
+            activeOrderItem = button;
+        };
+        li.appendChild(button);
+        orderTypeList.appendChild(li);
+    });
+
+    const ctx = document.getElementById('order-type-chart').getContext('2d');
+    const orderChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Execution Certainty', 'Price Certainty', 'Risk/Slippage'],
+            datasets: [{
+                label: 'Order Characteristics',
+                data: orderTypesData['Market'].chartData,
+                backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                borderColor: 'rgb(79, 70, 229)',
+                pointBackgroundColor: 'rgb(79, 70, 229)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(79, 70, 229)'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                    grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                    pointLabels: { font: { size: 10 } },
+                    suggestedMin: 0,
+                    suggestedMax: 5,
+                    ticks: { display: false, stepSize: 1 }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    function updateOrderTypeDetails(key) {
+        const data = orderTypesData[key];
+        orderTypeTitle.textContent = key;
+        orderTypeDescription.textContent = data.description;
+        orderTypeUsecase.textContent = data.usecase;
+        orderTypeRisk.textContent = data.risk;
+        orderChart.data.datasets[0].data = data.chartData;
+        orderChart.update();
+    }
+
+    const tradeOrderType = document.getElementById('trade-order-type');
+    const limitPriceGroup = document.getElementById('limit-price-group');
+    const stopPriceGroup = document.getElementById('stop-price-group');
+    
+    function handleOrderTypeChange() {
+        const selectedType = tradeOrderType.value;
+        limitPriceGroup.classList.toggle('hidden', !['Limit', 'Stop-Limit'].includes(selectedType));
+        stopPriceGroup.classList.toggle('hidden', !['Stop', 'Stop-Limit'].includes(selectedType));
+        updateTradeTicketAnalysis();
+    }
+    
+    tradeOrderType.addEventListener('change', handleOrderTypeChange);
+    
+    const quantityInput = document.getElementById('quantity');
+    const limitPriceInput = document.getElementById('limit-price');
+    const estCostEl = document.getElementById('est-cost');
+    const marginImpactEl = document.getElementById('margin-impact');
+    const buyingPowerAfterEl = document.getElementById('buying-power-after');
+
+    function updateTradeTicketAnalysis() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = parseFloat(limitPriceInput.value) || 150.25;
+        const totalCost = quantity * price;
+        const fees = totalCost * 0.0005; 
+        const finalCost = totalCost + fees;
+        const marginImpact = finalCost / 2;
+        const buyingPower = 25000;
+        const buyingPowerAfter = buyingPower - finalCost;
+
+        estCostEl.textContent = `$${finalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        marginImpactEl.textContent = `-$${marginImpact.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        buyingPowerAfterEl.textContent = `$${buyingPowerAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    [quantityInput, limitPriceInput].forEach(input => input.addEventListener('input', updateTradeTicketAnalysis));
+    
+    handleOrderTypeChange();
+    updateTradeTicketAnalysis();
+
+    const buyBtn = document.getElementById('buy-btn');
+    const sellBtn = document.getElementById('sell-btn');
+    buyBtn.addEventListener('click', () => {
+        buyBtn.classList.add('bg-emerald-500', 'text-white');
+        buyBtn.classList.remove('bg-slate-200', 'text-slate-700');
+        sellBtn.classList.add('bg-slate-200', 'text-slate-700');
+        sellBtn.classList.remove('bg-rose-500', 'text-white');
+    });
+    sellBtn.addEventListener('click', () => {
+        sellBtn.classList.add('bg-rose-500', 'text-white');
+        sellBtn.classList.remove('bg-slate-200', 'text-slate-700');
+        buyBtn.classList.add('bg-slate-200', 'text-slate-700');
+        buyBtn.classList.remove('bg-emerald-500', 'text-white');
+    });
+
+    const componentModal = document.getElementById('component-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDescription = document.getElementById('modal-description');
+    
+    const componentData = {
+        ui: { title: 'User Interface (UI)', description: 'The client-side application (SPA) that serves as the user\'s primary interaction point for placing trades and viewing data.' },
+        gateway: { title: 'API Gateway', description: 'The single, secure entry point for all requests from the UI. It handles authentication, rate limiting, and routing to the appropriate backend service.' },
+        risk: { title: 'Pre-Trade Risk & Compliance', description: 'Performs critical pre-flight checks, verifying sufficient funds, margin, user permissions, and screening for compliance issues.' },
+        oms: { title: 'Order Management Service (OMS)', description: 'The central brain of the system. It receives orders, validates them, assigns IDs, and maintains the state of every order throughout its lifecycle.' },
+        sor: { title: 'Smart Order Router (SOR)', description: 'Takes an approved order and uses algorithms to determine the optimal exchange or liquidity provider to route it to, based on price, speed, and liquidity.' },
+        connectors: { title: 'Execution Venue Connectors', description: 'Specialized adapters that communicate with external exchanges. They translate internal order formats into the specific protocols required by each venue (e.g., FIX protocol).' },
+        bus: { title: 'Event Bus / Message Broker', description: 'The nervous system of the backend (e.g., Apache Kafka). It allows microservices to communicate asynchronously by publishing and subscribing to events, decoupling the services for resilience and scalability.' }
+    };
+
+    document.querySelectorAll('[data-component]').forEach(el => {
+        el.addEventListener('click', () => {
+            const componentKey = el.dataset.component;
+            const data = componentData[componentKey];
+            if (data) {
+                modalTitle.textContent = data.title;
+                modalDescription.textContent = data.description;
+                componentModal.classList.add('active');
+            }
+        });
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        componentModal.classList.remove('active');
+    });
+    componentModal.addEventListener('click', (e) => {
+        if (e.target === componentModal) {
+            componentModal.classList.remove('active');
+        }
+    });
+
+});
+</script>
+</body>
+</html>
