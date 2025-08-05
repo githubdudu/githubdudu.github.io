@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Order Lifecycle Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .view-toggle button.active { background-color: #1D4ED8; color: white; }
+        .view-toggle button.inactive { background-color: #e5e7eb; color: #374151; }
+        .order-card { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .conditional-field { display: none; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Trade Order Lifecycle Demo</h1>
+            <p class="text-gray-600 mt-1">Simulating the experience for Navigators and Pilots.</p>
+        </header>
+
+        <div class="view-toggle flex justify-center mb-8 bg-gray-200 rounded-lg p-1 max-w-sm mx-auto">
+            <button id="toggle-navigator" class="w-1/2 py-2 px-4 rounded-md text-sm font-medium transition-colors active">Navigator View</button>
+            <button id="toggle-pilot" class="w-1/2 py-2 px-4 rounded-md text-sm font-medium transition-colors inactive">Pilot View</button>
+        </div>
+
+        <div id="navigator-view" class="space-y-8">
+            <!-- 1. Navigator Creates Trade Orders -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Create New Trade Order</h2>
+                <form id="create-order-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="asset" class="block text-sm font-medium text-gray-700">Asset</label>
+                            <select id="asset" name="asset" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option>BTC/USD</option>
+                                <option>ETH/USD</option>
+                                <option>AAPL</option>
+                                <option>TSLA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="order-type" class="block text-sm font-medium text-gray-700">Order Type</label>
+                            <select id="order-type" name="order-type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="market">MARKET</option>
+                                <option value="limit">LIMIT</option>
+                                <option value="stop_market">STOP MARKET</option>
+                                <option value="stop_limit">STOP LIMIT</option>
+                                <option value="trl_stop">TRL STOP</option>
+                                <option value="trl_stp_lmt">TRL STP LMT</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                            <label for="size-type" class="block text-sm font-medium text-gray-700">Size By</label>
+                            <select id="size-type" name="size-type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="quantity">Quantity</option>
+                                <option value="percentage">Percentage</option>
+                            </select>
+                        </div>
+                        <div id="quantity-field">
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                            <input type="number" name="quantity" id="quantity" value="1" min="0.01" step="0.01" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <div id="percentage-field" class="conditional-field">
+                            <label for="percentage" class="block text-sm font-medium text-gray-700">Percentage of Portfolio</label>
+                            <input type="number" name="percentage" id="percentage" value="1" min="1" max="100" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div id="stop-price-field" class="conditional-field">
+                            <label for="stop-price" class="block text-sm font-medium text-gray-700">Stop Price</label>
+                            <input type="number" name="stop-price" id="stop-price" placeholder="0.00" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <div id="limit-price-field" class="conditional-field">
+                            <label for="limit-price" class="block text-sm font-medium text-gray-700">Limit Price</label>
+                            <input type="number" name="limit-price" id="limit-price" placeholder="0.00" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                     <div id="trailing-amount-field" class="conditional-field">
+                        <div>
+                            <label for="trailing-amount" class="block text-sm font-medium text-gray-700">Trailing Amount</label>
+                            <input type="text" name="trailing-amount" id="trailing-amount" placeholder="e.g. 2.50 or 1%" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tif" class="block text-sm font-medium text-gray-700">Time in Force (TIF)</label>
+                            <select id="tif" name="tif" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="Day">Day</option>
+                                <option value="GTC">Good 'til Canceled (GTC)</option>
+                                <option value="GTD">Good 'til Date (GTD)</option>
+                            </select>
+                        </div>
+                        <div id="gtd-date-field" class="conditional-field">
+                            <label for="gtd-date" class="block text-sm font-medium text-gray-700">Expires On</label>
+                            <input type="date" name="gtd-date" id="gtd-date" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1">
+                         <div>
+                            <label for="release-time" class="block text-sm font-medium text-gray-700">Scheduled Release (Optional)</label>
+                            <input type="datetime-local" name="release-time" id="release-time" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Create Private Order</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">My Trade Orders</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TIF</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Release</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pilot-view" class="hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Published Orders Feed</h2>
+                <p class="text-sm text-gray-600 mb-6">This is your live feed of new trade orders from Navigators you follow.</p>
+                <div id="pilot-orders-list" class="space-y-4">
+                    <div class="text-center text-gray-500 py-8">No new published orders.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            orders: [
+                { id: 1, navigator: 'AlphaTrader', asset: 'ETH/USD', type: 'MARKET', size: '2 Qty', details: '-', tif: 'GTC', releaseTime: null, status: 'Private', publishedTime: null, pilotAction: null },
+                { id: 2, navigator: 'MomentumMax', asset: 'AAPL', type: 'LIMIT', size: '10 Qty', details: 'Limit: 175.00', tif: 'Day', releaseTime: null, status: 'Published', publishedTime: new Date().toISOString(), pilotAction: null },
+                { id: 3, navigator: 'ValueVet', asset: 'TSLA', type: 'STOP MARKET', size: '5% Portfolio', details: 'Stop: 170.00', tif: 'GTC', releaseTime: null, status: 'Published', publishedTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(), pilotAction: 'followed' },
+            ],
+            nextOrderId: 4,
+        };
+
+        const navigatorView = document.getElementById('navigator-view');
+        const pilotView = document.getElementById('pilot-view');
+        const toggleNavigator = document.getElementById('toggle-navigator');
+        const togglePilot = document.getElementById('toggle-pilot');
+        const createOrderForm = document.getElementById('create-order-form');
+        const ordersTableBody = document.getElementById('orders-table-body');
+        const pilotOrdersList = document.getElementById('pilot-orders-list');
+
+        const orderTypeSelect = document.getElementById('order-type');
+        const sizeTypeSelect = document.getElementById('size-type');
+        const tifSelect = document.getElementById('tif');
+
+        function updateFormVisibility() {
+            const orderType = orderTypeSelect.value;
+            const sizeType = sizeTypeSelect.value;
+            const tifType = tifSelect.value;
+
+            document.getElementById('stop-price-field').style.display = ['stop_market', 'stop_limit'].includes(orderType) ? 'block' : 'none';
+            document.getElementById('limit-price-field').style.display = ['limit', 'stop_limit', 'trl_stp_lmt'].includes(orderType) ? 'block' : 'none';
+            document.getElementById('trailing-amount-field').style.display = ['trl_stop', 'trl_stp_lmt'].includes(orderType) ? 'block' : 'none';
+            
+            document.getElementById('quantity-field').style.display = sizeType === 'quantity' ? 'block' : 'none';
+            document.getElementById('percentage-field').style.display = sizeType === 'percentage' ? 'block' : 'none';
+            
+            document.getElementById('gtd-date-field').style.display = tifType === 'GTD' ? 'block' : 'none';
+        }
+
+        function formatTime(isoString) {
+            if (!isoString) return 'N/A';
+            const date = new Date(isoString);
+            return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        function renderOrders() {
+            ordersTableBody.innerHTML = '';
+            if (state.orders.length === 0) {
+                ordersTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">No trade orders created yet.</td></tr>`;
+                return;
+            }
+            state.orders.forEach(order => {
+                const isPublished = order.status === 'Published';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.asset}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.size}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.details}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.tif}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatTime(order.releaseTime)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${order.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="publish-btn text-indigo-600 hover:text-indigo-900 mr-4 ${isPublished ? 'hidden' : ''}" data-id="${order.id}">Publish</button>
+                        <button class="delete-btn text-red-600 hover:text-red-900 ${isPublished ? 'hidden' : ''}" data-id="${order.id}">Delete</button>
+                        <span class="text-gray-400 ${isPublished ? '' : 'hidden'}">No actions</span>
+                    </td>
+                `;
+                ordersTableBody.appendChild(row);
+            });
+        }
+        
+        function publishOrder(orderId) {
+            const orderToPublish = state.orders.find(order => order.id === orderId);
+            if (orderToPublish && orderToPublish.status !== 'Published') {
+                orderToPublish.status = 'Published';
+                orderToPublish.publishedTime = new Date().toISOString();
+                renderOrders();
+                renderPilotFeed();
+            }
+        }
+
+        function renderPilotFeed() {
+            const publishedOrders = state.orders.filter(o => o.status === 'Published').sort((a,b) => new Date(b.publishedTime) - new Date(a.publishedTime));
+            
+            if (publishedOrders.length === 0) {
+                 pilotOrdersList.innerHTML = `<div class="text-center text-gray-500 py-8">No new published orders.</div>`;
+                 return;
+            }
+            
+            pilotOrdersList.innerHTML = '';
+            publishedOrders.forEach(order => {
+                const orderEl = document.createElement('div');
+                orderEl.className = 'order-card bg-gray-50 p-4 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center border border-gray-200';
+                
+                let actionHtml = '';
+                if (order.pilotAction === 'followed') {
+                    actionHtml = `<span class="px-3 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">Followed</span>`;
+                } else if (order.pilotAction === 'ignored') {
+                    actionHtml = `<span class="px-3 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800">Ignored</span>`;
+                } else {
+                    actionHtml = `
+                        <div class="flex space-x-2 mt-4 sm:mt-0">
+                            <button class="follow-btn bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors" data-id="${order.id}">Follow</button>
+                            <button class="ignore-btn bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors" data-id="${order.id}">Ignore</button>
+                        </div>
+                    `;
+                }
+
+                orderEl.innerHTML = `
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-semibold text-gray-800">${order.navigator}</span>
+                            <span class="text-xs text-gray-500">${formatTime(order.publishedTime)}</span>
+                        </div>
+                        <p class="text-lg font-medium text-gray-900 mt-1">${order.type} ${order.asset}</p>
+                        <p class="text-sm text-gray-600">Details: ${order.details} | Size: ${order.size} | TIF: ${order.tif}</p>
+                    </div>
+                    <div class="pilot-action-container">
+                        ${actionHtml}
+                    </div>
+                `;
+                pilotOrdersList.appendChild(orderEl);
+            });
+        }
+
+        createOrderForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(createOrderForm);
+            const asset = formData.get('asset');
+            const typeValue = formData.get('order-type');
+            const type = typeValue.replace(/_/g, ' ').toUpperCase();
+            const sizeType = formData.get('size-type');
+            let tif = formData.get('tif');
+            const releaseTime = formData.get('release-time') ? new Date(formData.get('release-time')).toISOString() : null;
+            
+            if (tif === 'GTD') {
+                const gtdDate = formData.get('gtd-date');
+                if (gtdDate) {
+                    const formattedGtd = new Date(gtdDate).toLocaleDateString('en-CA'); // YYYY-MM-DD
+                    tif = `GTD (${formattedGtd})`;
+                }
+            }
+
+            let size = '';
+            if(sizeType === 'quantity') {
+                size = `${formData.get('quantity')} Qty`;
+            } else {
+                size = `${formData.get('percentage')}%`;
+            }
+
+            let details = '-';
+            const stopPrice = formData.get('stop-price');
+            const limitPrice = formData.get('limit-price');
+            const trailingAmount = formData.get('trailing-amount');
+
+            if (typeValue === 'limit') {
+                details = `Limit: ${limitPrice}`;
+            } else if (typeValue === 'stop_market') {
+                details = `Stop: ${stopPrice}`;
+            } else if (typeValue === 'stop_limit') {
+                details = `Stop: ${stopPrice}, Limit: ${limitPrice}`;
+            } else if (typeValue === 'trl_stop') {
+                details = `Trail: ${trailingAmount}`;
+            } else if (typeValue === 'trl_stp_lmt') {
+                details = `Trail: ${trailingAmount}, Limit: ${limitPrice}`;
+            }
+            
+            const newOrder = {
+                id: state.nextOrderId++,
+                navigator: 'AlphaTrader', // Hardcoded for new orders
+                asset,
+                type,
+                size,
+                details,
+                tif,
+                releaseTime,
+                status: 'Private',
+                publishedTime: null,
+                pilotAction: null
+            };
+            state.orders.push(newOrder);
+            renderOrders();
+            createOrderForm.reset();
+            updateFormVisibility();
+        });
+
+        ordersTableBody.addEventListener('click', (e) => {
+            const orderId = parseInt(e.target.dataset.id);
+            if (e.target.classList.contains('delete-btn')) {
+                state.orders = state.orders.filter(order => order.id !== orderId);
+                renderOrders();
+                renderPilotFeed();
+            }
+            if (e.target.classList.contains('publish-btn')) {
+                publishOrder(orderId);
+            }
+        });
+        
+        pilotOrdersList.addEventListener('click', (e) => {
+            const orderId = parseInt(e.target.dataset.id);
+            const order = state.orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            if (e.target.classList.contains('follow-btn')) {
+                order.pilotAction = 'followed';
+                renderPilotFeed();
+            }
+            if (e.target.classList.contains('ignore-btn')) {
+                order.pilotAction = 'ignored';
+                renderPilotFeed();
+            }
+        });
+
+        toggleNavigator.addEventListener('click', () => {
+            navigatorView.style.display = 'block';
+            pilotView.style.display = 'none';
+            toggleNavigator.classList.add('active');
+            toggleNavigator.classList.remove('inactive');
+            togglePilot.classList.add('inactive');
+            togglePilot.classList.remove('active');
+        });
+
+        togglePilot.addEventListener('click', () => {
+            navigatorView.style.display = 'none';
+            pilotView.style.display = 'block';
+            toggleNavigator.classList.remove('active');
+            toggleNavigator.classList.add('inactive');
+            togglePilot.classList.remove('inactive');
+            togglePilot.classList.add('active');
+        });
+
+        orderTypeSelect.addEventListener('change', updateFormVisibility);
+        sizeTypeSelect.addEventListener('change', updateFormVisibility);
+        tifSelect.addEventListener('change', updateFormVisibility);
+
+        // Auto-publisher simulation
+        setInterval(() => {
+            const now = new Date();
+            state.orders.forEach(order => {
+                if (order.status === 'Private' && order.releaseTime) {
+                    const releaseDate = new Date(order.releaseTime);
+                    if (now >= releaseDate) {
+                        publishOrder(order.id);
+                    }
+                }
+            });
+        }, 5000); // Check every 5 seconds
+
+        // Initial render
+        renderOrders();
+        renderPilotFeed();
+        updateFormVisibility();
+    </script>
+</body>
+</html>
