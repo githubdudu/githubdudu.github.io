@@ -36,11 +36,7 @@
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                 Technical Architecture for the Trade Order Feature
             </h1>
-            <p class="mt-3 text-lg text-gray-600 max-w-3xl mx-auto">
-                A scalable microservices model for real-time communication and system resilience.
-            </p>
         </header>
-
         <section id="principles" class="my-12">
             <h2 class="text-2xl font-bold text-center mb-8">Core Architectural Principles</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -65,12 +61,10 @@
                 <!-- API Gateway -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">1. API Gateway</h3>
-                    <p class="mt-2 text-sm text-gray-600">The single, secure entry point for all front-end requests. It handles authentication, rate limiting, and request routing.</p>
                 </div>
                 <!-- Order Service -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">2. Order Service</h3>
-                    <p class="mt-2 text-sm text-gray-600">The central brain for managing the state of all trade orders. It handles creation, validation, storage, and status changes.</p>
                     <div class="mt-3 text-xs font-mono bg-gray-100 p-2 rounded">
                         <p>POST /orders</p>
                         <p>PUT /orders/{id}/publish</p>
@@ -79,17 +73,14 @@
                 <!-- Scheduler Service -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">3. Scheduler Service</h3>
-                    <p class="mt-2 text-sm text-gray-600">A time-based service (cron job) that handles automated actions like scheduled releases and order expiry.</p>
                 </div>
                 <!-- Real-Time Service -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">4. Real-Time Service</h3>
-                    <p class="mt-2 text-sm text-gray-600">Manages persistent WebSocket connections with active users, pushing live updates for new orders.</p>
                 </div>
                 <!-- Trade Copy Service -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">5. Trade Copy Service</h3>
-                    <p class="mt-2 text-sm text-gray-600">Executes the core copy-trading logic, applying Pilot-specific settings to construct the final trade order.</p>
                      <div class="mt-3 text-xs font-mono bg-gray-100 p-2 rounded">
                         <p>POST /copy-trades</p>
                     </div>
@@ -97,70 +88,14 @@
                 <!-- Brokerage Service -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h3 class="font-bold text-lg text-gray-900">6. Brokerage Service</h3>
-                    <p class="mt-2 text-sm text-gray-600">An abstraction layer that communicates with external brokerage APIs (e.g., SnapTrade) to place trades.</p>
                 </div>
             </div>
         </section>
 
         <section id="data-flow" class="my-16">
             <h2 class="text-2xl font-bold text-center mb-8">Data Flow: Lifecycle of a Trade Order</h2>
-            <div class="relative w-full mx-auto" style="height: 550px;">
-                <!-- Service Boxes -->
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 0; width: 120px; height: 80px;">Navigator UI</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 20%; width: 120px; height: 80px;">API Gateway</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 10%; left: 40%; width: 120px; height: 80px;">Scheduler Service</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 40%; width: 120px; height: 80px;">Order Service</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 60%; width: 120px; height: 80px;">Message Queue</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 80%; width: 120px; height: 80px;">Real-Time Service</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 0; width: 120px; height: 80px;">Pilot UI</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 40%; width: 120px; height: 80px;">Trade Copy Service</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 60%; width: 120px; height: 80px;">Brokerage Service</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 80%; width: 120px; height: 80px;">Broker API</div>
-                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 0; right: 0; width: 120px; height: 80px;">Database</div>
-
-                <!-- Arrows & Labels -->
-                <div class="absolute bg-gray-400" style="top: 48%; left: 120px; width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 48%; left: 20%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 42%; left: calc(10% + 10px);">(1) Create/Publish</div>
-
-                <div class="absolute bg-gray-400" style="top: 48%; left: calc(40% + 120px); width: calc(100% - (40% + 120px)); height: 2px;"></div>
-                <div class="absolute bg-gray-400" style="top: 40px; right: 120px; width: 2px; height: calc(48% - 40px);"></div>
-                <div class="arrow-head" style="top: 40px; right: 120px; border-top-color: #9ca3af; margin-top: -6px; margin-left: -5px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 25%; left: calc(50%);">(2) Save</div>
-
-                <div class="absolute bg-gray-400" style="top: calc(10% + 80px); left: calc(40% + 60px); width: 2px; height: calc(30% - 80px);"></div>
-                <div class="arrow-head" style="top: 40%; left: calc(40% + 60px); border-top-color: #9ca3af; margin-top: -12px; margin-left: -5px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 25%; left: calc(40% + 70px);">(4) Scheduled</div>
-                
-                <div class="absolute bg-gray-400" style="top: 48%; left: calc(20% + 120px); width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 48%; left: 40%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-
-                <div class="absolute bg-gray-400" style="top: 48%; left: calc(40% + 120px); width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 48%; left: 60%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-
-                <div class="absolute bg-gray-400" style="top: 48%; left: calc(60% + 120px); width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 48%; left: 80%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 42%; left: calc(70% + 10px);">(5) Event</div>
-
-                <div class="absolute bg-gray-400" style="top: 48%; left: calc(80% + 60px); width: 2px; height: calc(32%);"></div>
-                <div class="absolute bg-gray-400" style="top: 88%; left: 120px; width: calc(80% - 120px + 60px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 88%; left: 120px; border-right-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 65%; left: calc(80% + 70px);">(6) Push</div>
-
-                <div class="absolute bg-gray-400" style="top: 88%; left: 120px; width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 88%; left: 20%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 82%; left: calc(10% + 10px);">(7) Follow</div>
-
-                <div class="absolute bg-gray-400" style="top: calc(40% + 80px); left: calc(20% + 60px); width: 2px; height: calc(40% - 80px);"></div>
-                <div class="absolute bg-gray-400" style="top: 88%; left: calc(20% + 60px); width: calc(20%); height: 2px;"></div>
-                <div class="arrow-head" style="top: 88%; left: 40%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-
-                <div class="absolute bg-gray-400" style="top: 88%; left: calc(40% + 120px); width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 88%; left: 60%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
-                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 82%; left: calc(50% + 10px);">(8) Execute</div>
-
-                <div class="absolute bg-gray-400" style="top: 88%; left: calc(60% + 120px); width: calc(20% - 120px); height: 2px;"></div>
-                <div class="arrow-head" style="top: 88%; left: 80%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+            <div class="relative w-full mx-auto" style="height: 1200px;">
+                <img src="data-flow-diagram.png" alt="Data Flow Diagram" class="w-full h-full object-contain">
             </div>
         </section>
 
