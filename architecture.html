@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Architecture | Trade Order Feature</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A single-page, top-to-bottom scrolling layout. The structure is thematic, following the source document's flow: Principles -> Services -> Data Flow -> Schema. This linear narrative is the most effective way to present a technical architecture document, guiding the user from high-level concepts to detailed implementation specifics in a logical progression. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Core Principles -> Goal: Inform -> Viz: Styled HTML Cards -> Interaction: Static -> Justification: Clearly presents the three architectural pillars. Method: HTML/CSS.
+        - Report Info: Key Services -> Goal: Organize -> Viz: Grid of Cards -> Interaction: Static -> Justification: Each service is a self-contained unit, making a card-based layout intuitive for separating concerns. Method: HTML/CSS.
+        - Report Info: Data Flow Diagram -> Goal: Show Process -> Viz: HTML/CSS Diagram -> Interaction: Static -> Justification: Translates the text-based diagram into a clear visual flow, which is crucial for understanding service interactions. Method: HTML/CSS.
+        - Report Info: Database Schema -> Goal: Organize -> Viz: Styled HTML Tables -> Interaction: Static -> Justification: A table is the standard and most effective way to represent a database schema. Method: HTML/CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; }
+        .arrow-head {
+            position: absolute;
+            border-style: solid;
+            border-color: transparent;
+            content: '';
+            border-width: 6px;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+
+        <header class="text-center my-8 md:my-12">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                Technical Architecture for the Trade Order Feature
+            </h1>
+            <p class="mt-3 text-lg text-gray-600 max-w-3xl mx-auto">
+                A scalable microservices model for real-time communication and system resilience.
+            </p>
+        </header>
+
+        <section id="principles" class="my-12">
+            <h2 class="text-2xl font-bold text-center mb-8">Core Architectural Principles</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">Microservices</h3>
+                    <p class="mt-2 text-gray-600">The system is broken down into small, independent services, each with a single responsibility. This allows for independent development, deployment, and scaling.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">Asynchronous Communication</h3>
+                    <p class="mt-2 text-gray-600">Services communicate via a message queue (like RabbitMQ or Kafka). This decouples the services, ensuring high availability and data integrity under heavy load.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">Real-Time Updates</h3>
+                    <p class="mt-2 text-gray-600">A dedicated real-time service uses WebSockets to push live updates to the user interface, ensuring Pilots see new orders instantly without needing to refresh.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="my-16">
+            <h2 class="text-2xl font-bold text-center mb-8">Key Services & Their Roles</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- API Gateway -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">1. API Gateway</h3>
+                    <p class="mt-2 text-sm text-gray-600">The single, secure entry point for all front-end requests. It handles authentication, rate limiting, and request routing.</p>
+                </div>
+                <!-- Order Service -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">2. Order Service</h3>
+                    <p class="mt-2 text-sm text-gray-600">The central brain for managing the state of all trade orders. It handles creation, validation, storage, and status changes.</p>
+                    <div class="mt-3 text-xs font-mono bg-gray-100 p-2 rounded">
+                        <p>POST /orders</p>
+                        <p>PUT /orders/{id}/publish</p>
+                    </div>
+                </div>
+                <!-- Scheduler Service -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">3. Scheduler Service</h3>
+                    <p class="mt-2 text-sm text-gray-600">A time-based service (cron job) that handles automated actions like scheduled releases and order expiry.</p>
+                </div>
+                <!-- Real-Time Service -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">4. Real-Time Service</h3>
+                    <p class="mt-2 text-sm text-gray-600">Manages persistent WebSocket connections with active users, pushing live updates for new orders.</p>
+                </div>
+                <!-- Trade Copy Service -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">5. Trade Copy Service</h3>
+                    <p class="mt-2 text-sm text-gray-600">Executes the core copy-trading logic, applying Pilot-specific settings to construct the final trade order.</p>
+                     <div class="mt-3 text-xs font-mono bg-gray-100 p-2 rounded">
+                        <p>POST /copy-trades</p>
+                    </div>
+                </div>
+                <!-- Brokerage Service -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-lg text-gray-900">6. Brokerage Service</h3>
+                    <p class="mt-2 text-sm text-gray-600">An abstraction layer that communicates with external brokerage APIs (e.g., SnapTrade) to place trades.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="data-flow" class="my-16">
+            <h2 class="text-2xl font-bold text-center mb-8">Data Flow: Lifecycle of a Trade Order</h2>
+            <div class="relative w-full mx-auto" style="height: 550px;">
+                <!-- Service Boxes -->
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 0; width: 120px; height: 80px;">Navigator UI</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 20%; width: 120px; height: 80px;">API Gateway</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 10%; left: 40%; width: 120px; height: 80px;">Scheduler Service</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 40%; width: 120px; height: 80px;">Order Service</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 60%; width: 120px; height: 80px;">Message Queue</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 40%; left: 80%; width: 120px; height: 80px;">Real-Time Service</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 0; width: 120px; height: 80px;">Pilot UI</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 40%; width: 120px; height: 80px;">Trade Copy Service</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 60%; width: 120px; height: 80px;">Brokerage Service</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 80%; left: 80%; width: 120px; height: 80px;">Broker API</div>
+                <div class="absolute bg-white p-4 rounded-lg shadow-md border border-gray-200 text-center flex items-center justify-center text-sm font-semibold" style="top: 0; right: 0; width: 120px; height: 80px;">Database</div>
+
+                <!-- Arrows & Labels -->
+                <div class="absolute bg-gray-400" style="top: 48%; left: 120px; width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 48%; left: 20%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 42%; left: calc(10% + 10px);">(1) Create/Publish</div>
+
+                <div class="absolute bg-gray-400" style="top: 48%; left: calc(40% + 120px); width: calc(100% - (40% + 120px)); height: 2px;"></div>
+                <div class="absolute bg-gray-400" style="top: 40px; right: 120px; width: 2px; height: calc(48% - 40px);"></div>
+                <div class="arrow-head" style="top: 40px; right: 120px; border-top-color: #9ca3af; margin-top: -6px; margin-left: -5px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 25%; left: calc(50%);">(2) Save</div>
+
+                <div class="absolute bg-gray-400" style="top: calc(10% + 80px); left: calc(40% + 60px); width: 2px; height: calc(30% - 80px);"></div>
+                <div class="arrow-head" style="top: 40%; left: calc(40% + 60px); border-top-color: #9ca3af; margin-top: -12px; margin-left: -5px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 25%; left: calc(40% + 70px);">(4) Scheduled</div>
+                
+                <div class="absolute bg-gray-400" style="top: 48%; left: calc(20% + 120px); width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 48%; left: 40%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+
+                <div class="absolute bg-gray-400" style="top: 48%; left: calc(40% + 120px); width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 48%; left: 60%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+
+                <div class="absolute bg-gray-400" style="top: 48%; left: calc(60% + 120px); width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 48%; left: 80%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 42%; left: calc(70% + 10px);">(5) Event</div>
+
+                <div class="absolute bg-gray-400" style="top: 48%; left: calc(80% + 60px); width: 2px; height: calc(32%);"></div>
+                <div class="absolute bg-gray-400" style="top: 88%; left: 120px; width: calc(80% - 120px + 60px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 88%; left: 120px; border-right-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 65%; left: calc(80% + 70px);">(6) Push</div>
+
+                <div class="absolute bg-gray-400" style="top: 88%; left: 120px; width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 88%; left: 20%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 82%; left: calc(10% + 10px);">(7) Follow</div>
+
+                <div class="absolute bg-gray-400" style="top: calc(40% + 80px); left: calc(20% + 60px); width: 2px; height: calc(40% - 80px);"></div>
+                <div class="absolute bg-gray-400" style="top: 88%; left: calc(20% + 60px); width: calc(20%); height: 2px;"></div>
+                <div class="arrow-head" style="top: 88%; left: 40%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+
+                <div class="absolute bg-gray-400" style="top: 88%; left: calc(40% + 120px); width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 88%; left: 60%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+                <div class="absolute text-xs text-blue-600 font-semibold bg-gray-50 px-1 rounded" style="top: 82%; left: calc(50% + 10px);">(8) Execute</div>
+
+                <div class="absolute bg-gray-400" style="top: 88%; left: calc(60% + 120px); width: calc(20% - 120px); height: 2px;"></div>
+                <div class="arrow-head" style="top: 88%; left: 80%; border-left-color: #9ca3af; margin-top: -6px; margin-left: -6px;"></div>
+            </div>
+        </section>
+
+        <section id="schema" class="my-16">
+            <h2 class="text-2xl font-bold text-center mb-8">Detailed Database Schema</h2>
+            <div class="space-y-12">
+                <!-- Users Table -->
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Users Table</h3>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-sm border">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3">Column</th><th class="px-6 py-3">Type</th><th class="px-6 py-3">Description</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+                                <tr><td class="px-6 py-4 font-mono">user_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Primary Key.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">email</td><td class="px-6 py-4 font-mono">VARCHAR(255)</td><td class="px-6 py-4">User's unique email address.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">role</td><td class="px-6 py-4 font-mono">ENUM</td><td class="px-6 py-4">'Navigator' or 'Pilot'.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Subscriptions Table -->
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Subscriptions Table</h3>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-sm border">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3">Column</th><th class="px-6 py-3">Type</th><th class="px-6 py-3">Description</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+                                <tr><td class="px-6 py-4 font-mono">subscription_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Primary Key.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">pilot_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Foreign Key to Users.user_id.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">navigator_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Foreign Key to Users.user_id.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Orders Table -->
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Orders Table</h3>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-sm border">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3">Column</th><th class="px-6 py-3">Type</th><th class="px-6 py-3">Description</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+                                <tr><td class="px-6 py-4 font-mono">order_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Primary Key.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">navigator_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Foreign Key to Users.user_id.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">status</td><td class="px-6 py-4 font-mono">ENUM</td><td class="px-6 py-4">'Private', 'Published', 'Deleted', 'Expired'.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">order_type</td><td class="px-6 py-4 font-mono">VARCHAR(50)</td><td class="px-6 py-4">e.g., 'MARKET', 'LIMIT', 'STOP LIMIT'.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">tif</td><td class="px-6 py-4 font-mono">VARCHAR(50)</td><td class="px-6 py-4">Time in Force (e.g., 'Day', 'GTC').</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">release_time</td><td class="px-6 py-4 font-mono">TIMESTAMP</td><td class="px-6 py-4">Scheduled time for auto-publishing.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                 <!-- CopiedTrades Table -->
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">CopiedTrades Table</h3>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-sm border">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3">Column</th><th class="px-6 py-3">Type</th><th class="px-6 py-3">Description</th>
+                            </tr></thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+                                <tr><td class="px-6 py-4 font-mono">copied_trade_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Primary Key.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">original_order_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Foreign Key to Orders.order_id.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">pilot_id</td><td class="px-6 py-4 font-mono">UUID</td><td class="px-6 py-4">Foreign Key to Users.user_id.</td></tr>
+                                <tr><td class="px-6 py-4 font-mono">status</td><td class="px-6 py-4 font-mono">ENUM</td><td class="px-6 py-4">'Pending', 'Executed', 'Failed'.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
